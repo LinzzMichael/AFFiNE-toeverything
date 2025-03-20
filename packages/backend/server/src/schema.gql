@@ -1082,9 +1082,6 @@ enum NotificationType {
   InvitationAccepted
   InvitationBlocked
   InvitationRejected
-  InvitationReviewApproved
-  InvitationReviewDeclined
-  InvitationReviewRequest
   Mention
 }
 

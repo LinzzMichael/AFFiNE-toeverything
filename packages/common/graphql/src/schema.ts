@@ -1530,9 +1530,6 @@ export enum NotificationType {
   InvitationAccepted = 'InvitationAccepted',
   InvitationBlocked = 'InvitationBlocked',
   InvitationRejected = 'InvitationRejected',
-  InvitationReviewApproved = 'InvitationReviewApproved',
-  InvitationReviewDeclined = 'InvitationReviewDeclined',
-  InvitationReviewRequest = 'InvitationReviewRequest',
   Mention = 'Mention',
 }
 
