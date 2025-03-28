@@ -11,10 +11,10 @@ import { property, query } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
+import { ERROR_CARD_DEFAULT_HEIGHT } from '../consts';
 import type { EmbedIframeStatusCardOptions } from '../types';
 
 const LINK_EDIT_POPUP_OFFSET = 12;
-const ERROR_CARD_DEFAULT_HEIGHT = 114;
 
 export class EmbedIframeErrorCard extends WithDisposable(LitElement) {
   static override styles = css`
@@ -24,7 +24,7 @@ export class EmbedIframeErrorCard extends WithDisposable(LitElement) {
     }
 
     .affine-embed-iframe-error-card {
-      container: affine-embed-iframe-error-card / inline-size;
+      container: affine-embed-iframe-error-card / size;
       display: flex;
       box-sizing: border-box;
       user-select: none;
@@ -64,6 +64,9 @@ export class EmbedIframeErrorCard extends WithDisposable(LitElement) {
             font-style: normal;
             font-weight: 600;
             line-height: 22px; /* 157.143% */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }
         }
 
@@ -155,6 +158,12 @@ export class EmbedIframeErrorCard extends WithDisposable(LitElement) {
           align-items: center;
         }
       }
+
+      @container affine-embed-iframe-error-card (height < 300px) {
+        .error-banner {
+          display: none;
+        }
+      }
     }
   `;
 
@@ -216,10 +225,10 @@ export class EmbedIframeErrorCard extends WithDisposable(LitElement) {
       <div class=${cardClasses} style=${cardStyle}>
         <div class="error-content">
           <div class="error-title">
-            <div class="error-icon">
+            <span class="error-icon">
               ${InformationIcon({ width: '16px', height: '16px' })}
-            </div>
-            <div class="error-title-text">This link couldn’t be loaded.</div>
+            </span>
+            <span class="error-title-text">This link couldn’t be loaded.</span>
           </div>
           <div class="error-message">
             ${this.error?.message || 'Failed to load embedded content'}
