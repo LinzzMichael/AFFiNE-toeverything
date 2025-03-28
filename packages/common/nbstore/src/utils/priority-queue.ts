@@ -52,6 +52,10 @@ export class PriorityQueue {
     return removed;
   }
 
+  has(id: string) {
+    return this.priorityMap.has(id);
+  }
+
   clear() {
     this.tree.clear();
     this.priorityMap.clear();
