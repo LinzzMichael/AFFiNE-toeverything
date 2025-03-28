@@ -6,12 +6,14 @@ import type { ExtensionType, Store, Transformer } from '@blocksuite/store';
 
 import { effects } from '../../effects.js';
 
+registerSpecs();
 blocksEffects();
 effects();
 
 import {
   EdgelessEditorBlockSpecs,
   PageEditorBlockSpecs,
+  registerSpecs,
   StoreExtensions,
 } from '@blocksuite/affine/extensions';
 import type { DocMode } from '@blocksuite/affine/model';

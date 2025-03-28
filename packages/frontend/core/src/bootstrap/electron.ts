@@ -3,3 +3,4 @@ import './env';
 import './public-path';
 import './polyfill/electron';
 import './telemetry';
+import './blocksuite';
