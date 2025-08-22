@@ -29,20 +29,23 @@ jobs:
       - name: Extract version and build type
         id: extract
         run: |
-          BRANCH_NAME=${{ github.ref_name }}
           echo "Branch: $BRANCH_NAME"
 
-          # 修改后的正则表达式：允许版本号前存在其他字符
-          if [[ "$BRANCH_NAME" =~ .*[_-]v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-            VERSION=${BASH_REMATCH[1]}
-            BUILD_TYPE=stable
-            GIT_SHORT_HASH=$(git rev-parse --short HEAD)
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-            echo "GIT_SHORT_HASH=$GIT_SHORT_HASH" >> $GITHUB_OUTPUT
-            echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_OUTPUT
+          # 简化匹配逻辑
+          if echo "$BRANCH_NAME" | grep -q "v[0-9]\+\.[0-9]\+\.[0-9]\+"; then
+              VERSION=$(echo "$BRANCH_NAME" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+" | sed 's/v//')
+              echo "提取的版本号: $VERSION"
+              BUILD_TYPE=stable
+              GIT_SHORT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+              echo "Git短哈希: $GIT_SHORT_HASH"
+              
+              # 输出结果
+              echo "VERSION=$VERSION"
+              echo "GIT_SHORT_HASH=$GIT_SHORT_HASH"
+              echo "BUILD_TYPE=$BUILD_TYPE"
           else
-            echo "::error::分支名 '$BRANCH_NAME' 中未找到合法的版本号格式（必须包含 _vX.Y.Z 或 -vX.Y.Z，例如 feature_v0.24.0）"
-            exit 1
+              echo "错误: 分支名中未找到版本号"
+              exit 1
           fi
   build-web:
     name: Build @affine/web
