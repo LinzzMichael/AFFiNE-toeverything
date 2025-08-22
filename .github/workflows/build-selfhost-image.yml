@@ -1,4 +1,4 @@
-name: Build Selfhost Images
+name: Build SelfHost Images
 
 on:
   workflow_dispatch:
@@ -32,7 +32,8 @@ jobs:
           BRANCH_NAME=${{ github.ref_name }}
           echo "Branch: $BRANCH_NAME"
 
-          if [[ "$BRANCH_NAME" =~ [_-]v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+          # 修改后的正则表达式：允许版本号前存在其他字符
+          if [[ "$BRANCH_NAME" =~ .*[_-]v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
             VERSION=${BASH_REMATCH[1]}
             BUILD_TYPE=stable
             GIT_SHORT_HASH=$(git rev-parse --short HEAD)
@@ -40,7 +41,7 @@ jobs:
             echo "GIT_SHORT_HASH=$GIT_SHORT_HASH" >> $GITHUB_OUTPUT
             echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_OUTPUT
           else
-            echo "::error::分支名 '$BRANCH_NAME' 中未找到合法的版本号格式（必须是 _vX.Y.Z 或 -vX.Y.Z，例如 _v0.24.0 或 -v1.2.3）"
+            echo "::error::分支名 '$BRANCH_NAME' 中未找到合法的版本号格式（必须包含 _vX.Y.Z 或 -vX.Y.Z，例如 feature_v0.24.0）"
             exit 1
           fi
   build-web:
