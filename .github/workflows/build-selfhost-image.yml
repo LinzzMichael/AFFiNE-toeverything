@@ -1,4 +1,4 @@
-name: Build Images
+name: Build Selfhost Images
 
 on:
   workflow_dispatch:
@@ -31,19 +31,18 @@ jobs:
         run: |
           BRANCH_NAME=${{ github.ref_name }}
           echo "Branch: $BRANCH_NAME"
+
           if [[ "$BRANCH_NAME" =~ [_-]v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
             VERSION=${BASH_REMATCH[1]}
             BUILD_TYPE=stable
+            GIT_SHORT_HASH=$(git rev-parse --short HEAD)
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "GIT_SHORT_HASH=$GIT_SHORT_HASH" >> $GITHUB_OUTPUT
+            echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_OUTPUT
           else
             echo "::error::分支名 '$BRANCH_NAME' 中未找到合法的版本号格式（必须是 _vX.Y.Z 或 -vX.Y.Z，例如 _v0.24.0 或 -v1.2.3）"
             exit 1
           fi
-
-          GIT_SHORT_HASH=$(git rev-parse --short HEAD)
-
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "GIT_SHORT_HASH=$GIT_SHORT_HASH" >> $GITHUB_OUTPUT
-          echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_OUTPUT
   build-web:
     name: Build @affine/web
     runs-on: ubuntu-latest
