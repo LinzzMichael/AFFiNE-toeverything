@@ -124,6 +124,10 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_DATABASE: ${{ secrets.DB_DATABASE || 'affine' }}
           COPILOT_HUNYUAN_APIKEY: ${{ secrets.COPILOT_HUNYUAN_APIKEY }}
+          TENCENT_SERVER_KEY:: ${{ secrets.TENCENT_SERVER_KEY }}
+          TENCENT_SERVER_HOST:: ${{ vars.TENCENT_SERVER_HOST }}
+          TENCENT_SERVER_USERNAME:: ${{ vars.TENCENT_SERVER_USERNAME }}
+
 
             
             
