@@ -1,0 +1,129 @@
+name: Deploy to Tencent Cloud
+
+on:
+  workflow_dispatch
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TENCENT_SERVER_HOST }}        # 服务器 IP/域名
+          username: ${{ vars.TENCENT_SERVER_USERNAME }} # SSH 用户名
+          key: ${{ secrets.TENCENT_SERVER_KEY }}  # SSH 私钥（PEM 格式）
+          port: ${{ secrets.TENCENT_SERVER_PORT || 22 }}      # SSH 端口，默认 22
+          source: ".docker/selfhost/compose.yml" # 仓库内的源文件路径（注意隐藏目录）
+          target: "~/AFFiNE_Deploy/" # 服务器上的目标路径（注意隐藏目录）
+          strip_components: 2 #去除掉.docker/selfhost结构
+      
+
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.TENCENT_SERVER_HOST }}
+          username: ${{ vars.TENCENT_SERVER_USERNAME }}
+          key: ${{ secrets.TENCENT_SERVER_KEY }} 
+          port: ${{ secrets.TENCENT_SERVER_PORT || 22 }}
+          envs: AFFINE_REVISION,PORT,DB_USERNAME,DB_PASSWORD,DB_DATABASE,DB_DATA_LOCATION,UPLOAD_LOCATION,CONFIG_LOCATION,AFFINE_SERVER_HOST,AFFINE_SERVER_EXTERNAL_URL,AFFINE_SERVER_HTTPS,COPILOT_HUNYUAN_BASE_URL,COPILOT_HUNYUAN_APIKEY,MAILER_SENDER,MAILER_USER,MAILER_PORT,MAILER_PASSWORD
+          script: |
+            # 部署命令 - 生成 .env 文件
+            cd ~/AFFiNE_Deploy
+            
+            # 显示配置信息（调试用）
+            echo "=== 部署配置信息 ==="
+            echo "AFFINE_REVISION: $AFFINE_REVISION"
+            echo "PORT: $PORT"
+            echo "DB_USERNAME: $DB_USERNAME"
+            echo "DB_DATABASE: $DB_DATABASE"
+            echo "数据库密码已设置: $([ -n "$DB_PASSWORD" ] && echo "✅" || echo "❌")"
+            echo "邮件配置: SENDER=$MAILER_SENDER, USER=$MAILER_USER, PORT=$MAILER_PORT"
+            echo "邮件密码已设置: $([ -n "$MAILER_PASSWORD" ] && echo "✅" || echo "❌")"
+            echo "AI 配置: BASE_URL=$COPILOT_HUNYUAN_BASE_URL"
+            echo "AI API 密钥已设置: $([ -n "$COPILOT_HUNYUAN_APIKEY" ] && echo "✅" || echo "❌")"
+            echo "HTTPS 启用: $AFFINE_SERVER_HTTPS"
+            echo "========================"
+            
+            # 生成 .env 文件
+            echo "正在生成 .env 配置文件..."
+            cat > .env << EOF
+            # AFFiNE 部署配置 - 由 GitHub Actions 自动生成
+            # 生成时间: $(date)
+            
+            # 版本配置
+            AFFINE_REVISION=${AFFINE_REVISION}
+            
+            # 服务配置
+            PORT=${PORT}
+            
+            # 数据库配置
+            DB_USERNAME=${DB_USERNAME}
+            DB_PASSWORD=${DB_PASSWORD}
+            DB_DATABASE=${DB_DATABASE}
+            
+            # 存储路径配置
+            DB_DATA_LOCATION=${DB_DATA_LOCATION}
+            UPLOAD_LOCATION=${UPLOAD_LOCATION}
+            CONFIG_LOCATION=${CONFIG_LOCATION}
+            
+            # 服务器配置（可选）
+            AFFINE_SERVER_HOST=${AFFINE_SERVER_HOST}
+            AFFINE_SERVER_EXTERNAL_URL=${AFFINE_SERVER_EXTERNAL_URL}
+            AFFINE_SERVER_HTTPS=${AFFINE_SERVER_HTTPS}
+            
+            # AI 配置（腾讯混元）
+            COPILOT_HUNYUAN_BASE_URL=${COPILOT_HUNYUAN_BASE_URL}
+            COPILOT_HUNYUAN_APIKEY=${COPILOT_HUNYUAN_APIKEY}
+            
+            # 邮件配置
+            MAILER_SENDER=${MAILER_SENDER}
+            MAILER_USER=${MAILER_USER}
+            MAILER_PORT=${MAILER_PORT}
+            MAILER_PASSWORD=${MAILER_PASSWORD}
+            EOF
+            
+            # 设置 .env 文件权限
+            chmod 600 .env
+            
+            echo "✅ .env 文件生成完成"
+            
+            # 拉取最新镜像
+            echo "正在拉取最新镜像..."
+            sudo docker compose -f compose.yml pull
+            
+            # 启动服务
+            echo "正在启动 AFFiNE 服务..."
+            sudo docker compose -f compose.yml up -d
+            
+            # 检查服务状态
+            echo "正在检查服务状态..."
+            sudo docker compose -f compose.yml ps
+            
+            echo "✅ 部署完成！"
+        env:
+          AFFINE_REVISION: ${{ vars.AFFINE_REVISION || 'stable' }}
+          PORT: ${{ vars.PORT || '3010' }}
+          DB_DATA_LOCATION: ${{ vars.DB_DATA_LOCATION || '~/.affine/self-host/postgres/pgdata' }}
+          UPLOAD_LOCATION: ${{ vars.UPLOAD_LOCATION || '~/.affine/self-host/storage' }}
+          CONFIG_LOCATION: ${{ vars.CONFIG_LOCATION || '~/.affine/self-host/config' }}
+          AFFINE_SERVER_HOST: ${{ vars.AFFINE_SERVER_HOST }}
+          AFFINE_SERVER_EXTERNAL_URL: ${{ vars.AFFINE_SERVER_EXTERNAL_URL }}
+          AFFINE_SERVER_HTTPS: ${{ vars.AFFINE_SERVER_HTTPS || 'true' }}
+          COPILOT_HUNYUAN_BASE_URL: ${{ vars.COPILOT_HUNYUAN_BASE_URL || 'https://api.hunyuan.cloud.tencent.com/v1' }}
+          MAILER_SENDER: ${{ vars.MAILER_SENDER }}
+          MAILER_USER: ${{ vars.MAILER_USER }}
+          MAILER_PORT: ${{ vars.MAILER_PORT || '465' }}
+          MAILER_PASSWORD: ${{ secrets.MAILER_PASSWORD }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME || 'affine' }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE || 'affine' }}
+          COPILOT_HUNYUAN_APIKEY: ${{ secrets.COPILOT_HUNYUAN_APIKEY }}
+
+            
+            
