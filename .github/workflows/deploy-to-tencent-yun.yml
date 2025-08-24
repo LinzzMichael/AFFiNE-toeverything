@@ -14,7 +14,7 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.TENCENT_SERVER_HOST }}        # 服务器 IP/域名
+          host: ${{ vars.TENCENT_SERVER_HOST }}        # 服务器 IP/域名
           username: ${{ vars.TENCENT_SERVER_USERNAME }} # SSH 用户名
           key: ${{ secrets.TENCENT_SERVER_KEY }}  # SSH 私钥（PEM 格式）
           port: ${{ secrets.TENCENT_SERVER_PORT || 22 }}      # SSH 端口，默认 22
@@ -124,9 +124,6 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_DATABASE: ${{ secrets.DB_DATABASE || 'affine' }}
           COPILOT_HUNYUAN_APIKEY: ${{ secrets.COPILOT_HUNYUAN_APIKEY }}
-          TENCENT_SERVER_KEY:: ${{ secrets.TENCENT_SERVER_KEY }}
-          TENCENT_SERVER_HOST:: ${{ vars.TENCENT_SERVER_HOST }}
-          TENCENT_SERVER_USERNAME:: ${{ vars.TENCENT_SERVER_USERNAME }}
 
 
             
